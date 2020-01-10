@@ -66,7 +66,7 @@ This package contains development files needed for building lxde plugins.
 %else
 %setup -q
 %endif
-%apply_patches
+%autopatch -p1
 #/autogen.sh
 
 %build
