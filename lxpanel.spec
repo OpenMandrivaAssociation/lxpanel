@@ -1,13 +1,13 @@
 %define git 0
 %define prerel 63ffd68
-%define ver 0.5.12
+%define ver 0.10.0
 %define gitday 20121312
 %define _disable_ld_no_undefined 1
 
 
 Summary:	Lightweight X11 desktop panel based on fbpanel
 Name:		lxpanel
-Release:	8
+Release:	1
 %if %git
 Version:	%{ver}.git%{gitday}
 Source0:	%{name}-%{prerel}.tar.gz
