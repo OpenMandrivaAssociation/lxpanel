@@ -32,6 +32,7 @@ BuildRequires:	pkgconfig(gtk+-2.0)
 BuildRequires:  pkgconfig(libfm-gtk)
 BuildRequires:	pkgconfig(libmenu-cache)
 BuildRequires:	pkgconfig(libwnck-1.0)
+BuildRequires:  pkgconfig(keybinder)
 Requires:	desktop-common-data
 Requires:	obconf
 Suggests:	pcmanfm
