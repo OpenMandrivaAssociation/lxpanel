@@ -29,6 +29,7 @@ BuildRequires:	xsltproc
 BuildRequires:	pkgconfig(alsa)
 BuildRequires:	pkgconfig(gdk-pixbuf-xlib-2.0)
 BuildRequires:	pkgconfig(gtk+-2.0)
+BuildRequires:  pkgconfig(libfm-gtk)
 BuildRequires:	pkgconfig(libmenu-cache)
 BuildRequires:	pkgconfig(libwnck-1.0)
 Requires:	desktop-common-data
