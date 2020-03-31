@@ -19,8 +19,8 @@ License:	GPLv2+
 Group:		Graphical desktop/Other
 Url:		http://lxde.sourceforge.net/
 #Source1:	volume_icon.tar.gz
-Patch1:		configure_desktop_number.patch
-Patch2:		lxpanel-0.5.12-automake113.patch
+
+
 BuildRequires:	docbook-to-man
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-style-xsl
