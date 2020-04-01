@@ -73,7 +73,6 @@ This package contains development files needed for building lxde plugins.
 #/autogen.sh
 
 %build
-#export CC=gcc
 %configure \
 	--enable-man \
 	--with-plugins="cpu batt kbled xkb thermal deskno volumealsa"
@@ -93,7 +92,6 @@ This package contains development files needed for building lxde plugins.
 %{_libdir}/%{name}/plugins/cpu.so
 %{_libdir}/%{name}/plugins/deskno.so
 %{_libdir}/%{name}/plugins/kbled.so
-%{_libdir}/%{name}/plugins/volumealsa.so
 %{_libdir}/%{name}/plugins/xkb.so
 %{_libdir}/%{name}/plugins/thermal.so
 %{_datadir}/%{name}
