@@ -1,39 +1,45 @@
 %define git 0
 %define prerel 63ffd68
-%define ver 0.5.12
 %define gitday 20121312
 %define _disable_ld_no_undefined 1
 
+%define major 0
+%define libname %mklibname %name %major
 
 Summary:	Lightweight X11 desktop panel based on fbpanel
 Name:		lxpanel
-Release:	8
-%if %git
-Version:	%{ver}.git%{gitday}
-Source0:	%{name}-%{prerel}.tar.gz
-%else
-Version:	%{ver}
-Source0:	http://dfn.dl.sourceforge.net/sourceforge/lxde/%{name}-%{version}.tar.gz
-%endif
+Release:	1
+Version:	0.10.0
+Source0:	http://dfn.dl.sourceforge.net/sourceforge/lxde/%{name}-%{version}.tar.xz
 License:	GPLv2+
 Group:		Graphical desktop/Other
 Url:		http://lxde.sourceforge.net/
 #Source1:	volume_icon.tar.gz
-Patch1:		configure_desktop_number.patch
-Patch2:		lxpanel-0.5.12-automake113.patch
+
+
 BuildRequires:	docbook-to-man
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-style-xsl
 BuildRequires:	intltool
 BuildRequires:	xsltproc
 BuildRequires:	pkgconfig(alsa)
+BuildRequires:	pkgconfig(gio-unix-2.0)
+BuildRequires:	pkgconfig(gmodule-2.0)
+BuildRequires:	pkgconfig(gthread-2.0)
 BuildRequires:	pkgconfig(gdk-pixbuf-xlib-2.0)
 BuildRequires:	pkgconfig(gtk+-2.0)
+BuildRequires:  pkgconfig(libfm-gtk)
+BuildRequires:  pkgconfig(libfm-extra)
 BuildRequires:	pkgconfig(libmenu-cache)
 BuildRequires:	pkgconfig(libwnck-1.0)
+BuildRequires:  pkgconfig(keybinder)
+BuildRequires:	pkgconfig(indicator-0.4)
+BuildRequires:	pkgconfig(libcurl)
+
 Requires:	desktop-common-data
 Requires:	obconf
-Suggests:	pcmanfm
+Requires:	libnotify
+Recommends:	pcmanfm
 Conflicts:	lxpanelx
 
 %description
@@ -53,6 +59,14 @@ LXPanel is a lightweight X11 desktop panel contains:
 
 This version based on lxpanelx 0.6.0 alpha version
 
+%package -n %libname
+Summary:	Lxpanel library package
+Group:		Graphical desktop/Other
+Requires:	%{name} = %{version}
+
+%description -n %libname
+Library for access to the API.
+
 %package devel
 Summary:	Development files for lxpanel
 Group:		Graphical desktop/Other
@@ -70,33 +84,38 @@ This package contains development files needed for building lxde plugins.
 #/autogen.sh
 
 %build
-export CC=gcc
-%configure2_5x \
+%configure \
 	--enable-man \
+	--enable-indicator-support \
 	--with-plugins="cpu batt kbled xkb thermal deskno volumealsa"
-%make
+%make_build
 
 %install
-%makeinstall_std
+%make_install
 
 %find_lang %{name}
 
 %files -f %{name}.lang
 %{_bindir}/%{name}
 %{_bindir}/lxpanelctl
+%dir %{_sysconfdir}/xdg/%{name}/
+%{_sysconfdir}/xdg/%{name}/*
 %dir %{_libdir}/%{name}
 %dir %{_libdir}/%{name}/plugins
 %{_libdir}/%{name}/plugins/batt.so
 %{_libdir}/%{name}/plugins/cpu.so
 %{_libdir}/%{name}/plugins/deskno.so
 %{_libdir}/%{name}/plugins/kbled.so
-%{_libdir}/%{name}/plugins/volumealsa.so
 %{_libdir}/%{name}/plugins/xkb.so
 %{_libdir}/%{name}/plugins/thermal.so
+%{_libdir}/%{name}/plugins/volume.so
 %{_datadir}/%{name}
 %{_mandir}/man1/*
 
+%files -n %libname
+%{_libdir}/%{name}/lib%{name}.so.%{major}{,.*}
+
 %files devel
 %{_includedir}/lxpanel
+%{_libdir}/%{name}/lib%{name}.so
 %{_libdir}/pkgconfig/lxpanel.pc
-
