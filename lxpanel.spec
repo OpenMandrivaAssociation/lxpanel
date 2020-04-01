@@ -23,6 +23,9 @@ BuildRequires:	docbook-style-xsl
 BuildRequires:	intltool
 BuildRequires:	xsltproc
 BuildRequires:	pkgconfig(alsa)
+BuildRequires:	pkgconfig(gio-unix-2.0)
+BuildRequires:	pkgconfig(gmodule-2.0)
+BuildRequires:	pkgconfig(gthread-2.0)
 BuildRequires:	pkgconfig(gdk-pixbuf-xlib-2.0)
 BuildRequires:	pkgconfig(gtk+-2.0)
 BuildRequires:  pkgconfig(libfm-gtk)
@@ -30,6 +33,9 @@ BuildRequires:  pkgconfig(libfm-extra)
 BuildRequires:	pkgconfig(libmenu-cache)
 BuildRequires:	pkgconfig(libwnck-1.0)
 BuildRequires:  pkgconfig(keybinder)
+BuildRequires:	pkgconfig(indicator-0.4)
+BuildRequires:	pkgconfig(libcurl)
+
 Requires:	desktop-common-data
 Requires:	obconf
 Requires:	libnotify
