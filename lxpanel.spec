@@ -73,14 +73,14 @@ This package contains development files needed for building lxde plugins.
 #/autogen.sh
 
 %build
-export CC=gcc
-%configure2_5x \
+#export CC=gcc
+%configure \
 	--enable-man \
 	--with-plugins="cpu batt kbled xkb thermal deskno volumealsa"
-%make
+%make_build
 
 %install
-%makeinstall_std
+%make_install
 
 %find_lang %{name}
 
