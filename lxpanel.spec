@@ -9,8 +9,8 @@
 Summary:	Lightweight X11 desktop panel based on fbpanel
 Name:		lxpanel
 Release:	1
-Version:	0.10.0
-Source0:	http://dfn.dl.sourceforge.net/sourceforge/lxde/%{name}-%{version}.tar.xz
+Version:	0.10.1
+Source0:	http://downloads.sourceforge.net/lxde/lxpanel-%{version}.tar.xz
 License:	GPLv2+
 Group:		Graphical desktop/Other
 Url:		http://lxde.sourceforge.net/
