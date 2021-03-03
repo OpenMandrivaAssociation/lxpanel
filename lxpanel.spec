@@ -34,6 +34,7 @@ BuildRequires:	pkgconfig(libwnck-1.0)
 BuildRequires:  pkgconfig(keybinder-3.0)
 BuildRequires:	pkgconfig(indicator-0.4)
 BuildRequires:	pkgconfig(libcurl)
+BuildRequires:	libiw-devel
 
 Requires:	desktop-common-data
 Requires:	obconf
