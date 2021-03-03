@@ -31,7 +31,7 @@ BuildRequires:  pkgconfig(libfm-gtk3)
 BuildRequires:  pkgconfig(libfm-extra)
 BuildRequires:	pkgconfig(libmenu-cache)
 BuildRequires:	pkgconfig(libwnck-1.0)
-BuildRequires:  pkgconfig(keybinder)
+BuildRequires:  pkgconfig(keybinder-3.0)
 BuildRequires:	pkgconfig(indicator-0.4)
 BuildRequires:	pkgconfig(libcurl)
 
