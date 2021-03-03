@@ -14,7 +14,6 @@ Source0:	http://downloads.sourceforge.net/lxde/lxpanel-%{version}.tar.xz
 License:	GPLv2+
 Group:		Graphical desktop/Other
 Url:		http://lxde.sourceforge.net/
-#Source1:	volume_icon.tar.gz
 
 
 BuildRequires:	docbook-to-man
@@ -27,8 +26,8 @@ BuildRequires:	pkgconfig(gio-unix-2.0)
 BuildRequires:	pkgconfig(gmodule-2.0)
 BuildRequires:	pkgconfig(gthread-2.0)
 BuildRequires:	pkgconfig(gdk-pixbuf-xlib-2.0)
-BuildRequires:	pkgconfig(gtk+-2.0)
-BuildRequires:  pkgconfig(libfm-gtk)
+BuildRequires:	pkgconfig(gtk+-3.0)
+BuildRequires:  pkgconfig(libfm-gtk3)
 BuildRequires:  pkgconfig(libfm-extra)
 BuildRequires:	pkgconfig(libmenu-cache)
 BuildRequires:	pkgconfig(libwnck-1.0)
@@ -81,12 +80,19 @@ This package contains development files needed for building lxde plugins.
 %setup -q
 %endif
 %autopatch -p1
-#/autogen.sh
 
 %build
+
+# Disable pager plugin as it breaks panel layout with GTK+ 3
+# https://sourceforge.net/p/lxde/bugs/773/
+sed -i '/pager.c/d' plugins/Makefile.am
+sed -i '/STATIC_PAGER/d' src/private.h
+sed -i 's/libwnck-3.0//' configure.ac
+
 %configure \
 	--enable-man \
 	--enable-indicator-support \
+	--enable-gtk3
 	--with-plugins="cpu batt kbled xkb thermal deskno volumealsa"
 %make_build
 
