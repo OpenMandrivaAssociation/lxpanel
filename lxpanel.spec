@@ -94,7 +94,7 @@ sed -i 's/libwnck-3.0//' configure.ac
 %configure \
 	--enable-man \
 	--enable-indicator-support \
-	--enable-gtk3
+	--enable-gtk3 \
 	--with-plugins="cpu batt kbled xkb thermal deskno volumealsa"
 %make_build
 
