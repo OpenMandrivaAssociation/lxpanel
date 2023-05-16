@@ -9,8 +9,10 @@
 Summary:	Lightweight X11 desktop panel based on fbpanel
 Name:		lxpanel
 Release:	1
-Version:	0.10.1
-Source0:	http://downloads.sourceforge.net/lxde/lxpanel-%{version}.tar.xz
+Version:	0.10.2.r1
+# Use active maintained fork
+Source0:	https://github.com/lxde-continued/%{name}/releases/download/%{name}-%{version}/%{name}-%{version}.tar.bz2
+#Source0:	http://downloads.sourceforge.net/lxde/lxpanel-%{version}.tar.xz
 License:	GPLv2+
 Group:		Graphical desktop/Other
 Url:		http://lxde.sourceforge.net/
@@ -35,6 +37,7 @@ BuildRequires:  pkgconfig(keybinder-3.0)
 BuildRequires:	pkgconfig(indicator-0.4)
 BuildRequires:	pkgconfig(libcurl)
 BuildRequires:  pkgconfig(libxml-2.0)
+BuildRequires:	pkgconfig(xkbfile)
 BuildRequires:	libiw-devel
 
 Requires:	desktop-common-data
@@ -87,9 +90,9 @@ This package contains development files needed for building lxde plugins.
 
 # Disable pager plugin as it breaks panel layout with GTK+ 3
 # https://sourceforge.net/p/lxde/bugs/773/
-sed -i '/pager.c/d' plugins/Makefile.am
-sed -i '/STATIC_PAGER/d' src/private.h
-sed -i 's/libwnck-3.0//' configure.ac
+#sed -i '/pager.c/d' plugins/Makefile.am
+#sed -i '/STATIC_PAGER/d' src/private.h
+#sed -i 's/libwnck-3.0//' configure.ac
 
 %configure \
 	--enable-man \
