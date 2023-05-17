@@ -16,8 +16,7 @@ Source0:	https://github.com/lxde-continued/%{name}/releases/download/%{name}-%{v
 License:	GPLv2+
 Group:		Graphical desktop/Other
 Url:		http://lxde.sourceforge.net/
-
-
+	
 BuildRequires:	docbook-to-man
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-style-xsl
@@ -38,7 +37,7 @@ BuildRequires:	pkgconfig(indicator-0.4)
 BuildRequires:	pkgconfig(libcurl)
 BuildRequires:  pkgconfig(libxml-2.0)
 BuildRequires:	pkgconfig(xkbfile)
-BuildRequires:	libiw-devel
+#BuildRequires:	libiw-devel
 
 Requires:	desktop-common-data
 Requires:	obconf
