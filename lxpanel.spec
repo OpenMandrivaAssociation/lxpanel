@@ -1,3 +1,6 @@
+# Workaround for Clang 16
+%global optflags %{optflags} -Wno-incompatible-function-pointer-types
+
 %define git 0
 %define prerel 63ffd68
 %define gitday 20121312
