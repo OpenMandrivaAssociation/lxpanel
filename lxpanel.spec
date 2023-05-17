@@ -1,5 +1,7 @@
 # Workaround for Clang 16
 %global optflags %{optflags} -Wno-incompatible-function-pointer-types
+# Workaround for Clang 15+
+%global optflags %{optflags} -Wno-error -Wno-implicit-function-declaration
 
 %define git 0
 %define prerel 63ffd68
