@@ -1,0 +1,11 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -220,7 +220,7 @@
+     fi
+ fi
+ 
+-ALL_PLUGINS_LIST="netstatus netstat volume volumealsa cpu deskno batt kbled xkb thermal cpufreq monitors indicator weather"
++ALL_PLUGINS_LIST="netstatus volume volumealsa cpu deskno batt kbled xkb thermal cpufreq monitors weather"
+ 
+ AC_DEFUN([check_plugin_name],[
+     plugin_found=false

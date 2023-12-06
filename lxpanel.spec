@@ -3,24 +3,45 @@
 # Workaround for Clang 15+
 %global optflags %{optflags} -Wno-error -Wno-implicit-function-declaration
 
-%define git 0
-%define prerel 63ffd68
-%define gitday 20121312
-%define _disable_ld_no_undefined 1
+# git snapshot
+%global snapshot 1
+%if 0%{?snapshot}
+	%global commit		633a2d46ffd37f3acde539de9a2861d1ade49ef8
+	%global commitdate	20230918
+	%global shortcommit	%(c=%{commit}; echo ${c:0:7})
+%endif
+
+#define git 0
+#define prerel 63ffd68
+#define gitday 20121312
+#define _disable_ld_no_undefined 1
 
 %define major 0
-%define libname %mklibname %name %major
+%define libname %mklibname %name
+%define oldlibname %mklibname %name 0
 
 Summary:	Lightweight X11 desktop panel based on fbpanel
 Name:		lxpanel
-Release:	1
-Version:	0.10.2.r1
-# Use active maintained fork
-Source0:	https://github.com/lxde-continued/%{name}/releases/download/%{name}-%{version}/%{name}-%{version}.tar.bz2
-#Source0:	http://downloads.sourceforge.net/lxde/lxpanel-%{version}.tar.xz
+Version:	0.10.1
+Release:	2
 License:	GPLv2+
 Group:		Graphical desktop/Other
-Url:		http://lxde.sourceforge.net/
+Url:		http://www.lxde.org
+# Use active maintained fork
+#Source0:	https://github.com/lxde-continued/%{name}/releases/download/%{name}-%{version}/%{name}-%{version}.tar.bz2
+#Source0:	http://downloads.sourceforge.net/lxde/lxpanel-%{version}.tar.xz
+Source0:	https://github.com/lxde/lxpanel/archive/%{?snapshot:%{commit}}%{!?snapshot:%{version}}/%{name}-%{?snapshot:%{commit}}%{!?snapshot:%{version}}.tar.gz
+# https://sourceforge.net/p/lxde/bugs/773/
+Patch0:		0001-Specify-GTK_REQUEST_CONSTANT_SIZE.-Fixes-773.patch
+# https://github.com/walshb/lxpanel/commit/3c1ad6bc7c8b4b3ba66c04e6e10aa741f028ba75
+Patch1:		https://github.com/walshb/lxpanel/commit/3c1ad6bc7c8b4b3ba66c04e6e10aa741f028ba75.patch
+# (fedora)
+Patch3:	lxpanel-0.10.1-0003-volumealsa-poll-alsa-mixer-several-times-at-startup.patch
+Patch4:	lxpanel-0.8.1-Fix-pager-scroll.patch
+Patch5:	lxpanel-0.10.1-batt-chaging-pending.patch
+# some plugins can't be compiled:
+#  netstat, indicator
+Patch10:	lxpanel-0.10.1-remove_failing_plugins.patch
 	
 BuildRequires:	docbook-to-man
 BuildRequires:	docbook-dtd412-xml
@@ -33,15 +54,15 @@ BuildRequires:	pkgconfig(gmodule-2.0)
 BuildRequires:	pkgconfig(gthread-2.0)
 BuildRequires:	pkgconfig(gdk-pixbuf-xlib-2.0)
 BuildRequires:	pkgconfig(gtk+-3.0)
-BuildRequires:  pkgconfig(libfm-gtk3)
-BuildRequires:  pkgconfig(libfm-extra)
+BuildRequires:	pkgconfig(libfm-gtk3)
+BuildRequires:	pkgconfig(libfm-extra)
 BuildRequires:	pkgconfig(libmenu-cache)
-BuildRequires:	pkgconfig(libwnck-1.0)
+#BuildRequires:	pkgconfig(libwnck-1.0)
 BuildRequires:	pkgconfig(libwnck-3.0)
-BuildRequires:  pkgconfig(keybinder-3.0)
-BuildRequires:	pkgconfig(indicator-0.4)
+BuildRequires:	pkgconfig(keybinder-3.0)
+BuildRequires:	pkgconfig(indicator3-0.4)
 BuildRequires:	pkgconfig(libcurl)
-BuildRequires:  pkgconfig(libxml-2.0)
+BuildRequires:	pkgconfig(libxml-2.0)
 BuildRequires:	pkgconfig(xkbfile)
 #BuildRequires:	libiw-devel
 
@@ -68,49 +89,6 @@ LXPanel is a lightweight X11 desktop panel contains:
 
 This version based on lxpanelx 0.6.0 alpha version
 
-%package -n %libname
-Summary:	Lxpanel library package
-Group:		Graphical desktop/Other
-Requires:	%{name} = %{version}
-
-%description -n %libname
-Library for access to the API.
-
-%package devel
-Summary:	Development files for lxpanel
-Group:		Graphical desktop/Other
-
-%description devel
-This package contains development files needed for building lxde plugins.
-
-%prep
-%if %git
-%setup -qn %{name}-%{prerel} -a1
-%else
-%setup -q
-%endif
-%autopatch -p1
-
-%build
-
-# Disable pager plugin as it breaks panel layout with GTK+ 3
-# https://sourceforge.net/p/lxde/bugs/773/
-#sed -i '/pager.c/d' plugins/Makefile.am
-#sed -i '/STATIC_PAGER/d' src/private.h
-#sed -i 's/libwnck-3.0//' configure.ac
-
-%configure \
-	--enable-man \
-	--enable-indicator-support \
-	--enable-gtk3 \
-	--with-plugins="cpu batt kbled xkb thermal deskno volumealsa"
-%make_build
-
-%install
-%make_install
-
-%find_lang %{name}
-
 %files -f %{name}.lang
 %{_bindir}/%{name}
 %{_bindir}/lxpanelctl
@@ -120,18 +98,62 @@ This package contains development files needed for building lxde plugins.
 %dir %{_libdir}/%{name}/plugins
 %{_libdir}/%{name}/plugins/batt.so
 %{_libdir}/%{name}/plugins/cpu.so
+%{_libdir}/%{name}/plugins/cpufreq.so
 %{_libdir}/%{name}/plugins/deskno.so
 %{_libdir}/%{name}/plugins/kbled.so
-%{_libdir}/%{name}/plugins/xkb.so
+%{_libdir}/%{name}/plugins/monitors.so
+%{_libdir}/%{name}/plugins/netstatus.so
 %{_libdir}/%{name}/plugins/thermal.so
 %{_libdir}/%{name}/plugins/volume.so
+%{_libdir}/%{name}/plugins/weather.so
+%{_libdir}/%{name}/plugins/xkb.so
 %{_datadir}/%{name}
 %{_mandir}/man1/*
 
+#---------------------------------------------------------------------------
+
+%package -n %libname
+Summary:	Lxpanel library package
+Group:		Graphical desktop/Other
+Requires:	%{name} = %{version}
+Obsoletes:	%oldlibname < %{EVRD}
+
+%description -n %libname
+Library for access to the API.
+
 %files -n %libname
 %{_libdir}/%{name}/lib%{name}.so.%{major}{,.*}
+
+#---------------------------------------------------------------------------
+
+%package devel
+Summary:	Development files for lxpanel
+Group:		Graphical desktop/Other
+
+%description devel
+This package contains development files needed for building lxde plugins.
 
 %files devel
 %{_includedir}/lxpanel
 %{_libdir}/%{name}/lib%{name}.so
 %{_libdir}/pkgconfig/lxpanel.pc
+
+#---------------------------------------------------------------------------
+
+%prep
+%autosetup -p1 -n %{name}-%{?snapshot:%{commit}}%{!?snapshot:%{version}}
+
+%build
+autoreconf -fiv
+%configure \
+	--disable-indicator-support \
+	--enable-gtk3 \
+	%{nil}
+%make_build
+
+%install
+%make_install
+
+# locales
+%find_lang %{name}
+
