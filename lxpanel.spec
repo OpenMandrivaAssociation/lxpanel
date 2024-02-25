@@ -23,7 +23,7 @@
 Summary:	Lightweight X11 desktop panel based on fbpanel
 Name:		lxpanel
 Version:	0.10.1
-Release:	2
+Release:	3
 License:	GPLv2+
 Group:		Graphical desktop/Other
 Url:		http://www.lxde.org
@@ -33,8 +33,8 @@ Url:		http://www.lxde.org
 Source0:	https://github.com/lxde/lxpanel/archive/%{?snapshot:%{commit}}%{!?snapshot:%{version}}/%{name}-%{?snapshot:%{commit}}%{!?snapshot:%{version}}.tar.gz
 # https://sourceforge.net/p/lxde/bugs/773/
 Patch0:		0001-Specify-GTK_REQUEST_CONSTANT_SIZE.-Fixes-773.patch
-# https://github.com/walshb/lxpanel/commit/3c1ad6bc7c8b4b3ba66c04e6e10aa741f028ba75
-Patch1:		https://github.com/walshb/lxpanel/commit/3c1ad6bc7c8b4b3ba66c04e6e10aa741f028ba75.patch
+#  resized panel background to enable larger panel heights #65
+Patch1:		https://github.com/lxde/lxpanel/pull/65/commits/4f3d32e66135f733450ed0717cf4e96018046216.patch
 # (fedora)
 Patch3:	lxpanel-0.10.1-0003-volumealsa-poll-alsa-mixer-several-times-at-startup.patch
 Patch4:	lxpanel-0.8.1-Fix-pager-scroll.patch
@@ -42,7 +42,14 @@ Patch5:	lxpanel-0.10.1-batt-chaging-pending.patch
 # some plugins can't be compiled:
 #  netstat, indicator
 Patch10:	lxpanel-0.10.1-remove_failing_plugins.patch
-	
+# from lxde-continued
+#  highlight selected workspace in pager
+Patch101:	https://github.com/lxde/lxpanel/commit/359ac141643ca9072bdc66542902a529316f3b10.patch
+#  apply partial workaround for GTK3 tooltip positioning bug (MAGEIA#30574)
+Patch102:	https://github.com/lxde/lxpanel/commit/76d0d61194a3dec9f3cc9947933d2594366c439b.patch
+#  merge pull request #3 from nsalguero/master
+Patch103:	https://github.com/lxde/lxpanel/commit/0c44a8acd3cd497e61a4fdadace4b69c49185b57.patch
+
 BuildRequires:	docbook-to-man
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-style-xsl

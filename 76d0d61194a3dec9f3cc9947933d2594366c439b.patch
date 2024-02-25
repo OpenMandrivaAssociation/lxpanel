@@ -1,0 +1,323 @@
+From 76d0d61194a3dec9f3cc9947933d2594366c439b Mon Sep 17 00:00:00 2001
+From: Vadim Ushakov <wandrien.dev@gmail.com>
+Date: Thu, 11 May 2023 10:38:26 +0700
+Subject: [PATCH] Apply partial workaround for GTK3 tooltip positioning bug
+ (MAGEIA#30574)
+
+GTK3 has multiple tooltip positioning issues.
+We can only partially dodge this.
+
+Apply a hack from:
+* https://bugs.mageia.org/show_bug.cgi?id=30574
+* http://sophie.zarb.org/rpms/9d697fa6536295e90f166ca7199d7850/files/11
+
+Thanks to Nicolas Salguero for the investigations.
+
+To reduce the edit surface in the code of plugins, I moved the duplicated
+parts to a separate function in misc.c and make it a part of lxpanel API.
+(Ugly!)
+
+Known issues:
+
+1. The pager plugin tooltips are still buggy.
+2. With this hack, tooltips don't seem to always show up when they should.
+
+Partially fixes issue https://github.com/lxde/lxpanel/issues/41
+---
+ plugins/batt/batt.c             |  2 ++
+ plugins/launch-button.c         |  3 ++
+ plugins/monitors/monitors.c     |  6 ++++
+ plugins/netstat/statusicon.c    |  2 ++
+ plugins/task-button.c           | 58 +++++++++++++++++++++++++++++++++
+ plugins/weather/weatherwidget.c |  2 ++
+ src/misc.c                      | 40 +++++++++++++++++++++++
+ src/misc.h                      |  2 ++
+ src/panel.c                     | 10 ++++++
+ src/plugin.c                    |  3 ++
+ 11 files changed, 129 insertions(+)
+
+diff --git a/plugins/batt/batt.c b/plugins/batt/batt.c
+index cc7bfea1..96524760 100644
+--- a/plugins/batt/batt.c
++++ b/plugins/batt/batt.c
+@@ -564,6 +564,8 @@ static GtkWidget * constructor(LXPanel *panel, config_setting_t *settings)
+     /* Start the update loop */
+     lx_b->timer = g_timeout_add_seconds( 9, (GSourceFunc) update_timout, (gpointer) lx_b);
+ 
++    lxpanel_apply_hack_for_issue_41(lx_b->drawingArea);
++
+     RET(p);
+ }
+ 
+diff --git a/plugins/launch-button.c b/plugins/launch-button.c
+index 1e6fbe02..58aef5b7 100644
+--- a/plugins/launch-button.c
++++ b/plugins/launch-button.c
+@@ -179,6 +179,9 @@ LaunchButton *launch_button_new(LXPanel *panel, GtkWidget *plugin, FmPath *id,
+             return NULL;
+         }
+     }
++
++    lxpanel_apply_hack_for_issue_41(GTK_WIDGET(self));
++
+     return self;
+ }
+ 
+diff --git a/plugins/monitors/monitors.c b/plugins/monitors/monitors.c
+index 524b526d..9cd939e1 100644
+--- a/plugins/monitors/monitors.c
++++ b/plugins/monitors/monitors.c
+@@ -285,6 +285,9 @@ cpu_tooltip_update (Monitor *m)
+         tooltip_text = g_strdup_printf(_("CPU usage: %.2f%%"),
+                 m->stats[ring_pos] * 100);
+         gtk_widget_set_tooltip_text(m->da, tooltip_text);
++
++        lxpanel_apply_hack_for_issue_41(m->da);
++
+         g_free(tooltip_text);
+     }
+ }
+@@ -387,6 +390,9 @@ mem_tooltip_update (Monitor *m)
+                 m->stats[ring_pos] * m->total / 1024,
+                 m->stats[ring_pos] * 100);
+         gtk_widget_set_tooltip_text(m->da, tooltip_text);
++
++        lxpanel_apply_hack_for_issue_41(m->da);
++
+         g_free(tooltip_text);
+     }
+ }
+diff --git a/plugins/netstat/statusicon.c b/plugins/netstat/statusicon.c
+index 83622e24..59781928 100644
+--- a/plugins/netstat/statusicon.c
++++ b/plugins/netstat/statusicon.c
+@@ -48,6 +48,8 @@ struct statusicon *create_statusicon(LXPanel *panel, GtkWidget *box,
+     /* tooltip */
+     gtk_widget_set_tooltip_text(newicon->main, tooltips);
+ 
++    lxpanel_apply_hack_for_issue_41(newicon->main);
++
+     return newicon;
+ }
+ 
+diff --git a/plugins/task-button.c b/plugins/task-button.c
+index 3744cc79..be337366 100644
+--- a/plugins/task-button.c
++++ b/plugins/task-button.c
+@@ -102,6 +102,10 @@ struct _TaskButton
+     unsigned int same_name :1;  /* TRUE if all visible windows have the same name */
+     unsigned int entered_state :1; /* TRUE if cursor is inside taskbar button */
+     unsigned int has_flash :1;  /* used by task_button_set_flash_state() */
++#if GTK_CHECK_VERSION(3, 0, 0)
++    GMutex idle_query_tp_mutex; /* mutex for callback reenabling query-tooltip */
++    guint idle_query_tooltip;   /* id of callback reenabling query-tooltip */
++#endif
+ };
+ 
+ enum {
+@@ -1131,6 +1135,38 @@ static void task_update_icon(TaskButton *task, TaskDetails *details, Atom source
+                                                          task, NULL);
+ }
+ 
++#if GTK_CHECK_VERSION(3, 0, 0)
++static gboolean enable_query_tooltip(gpointer p_data)
++{
++    TaskButton *task = p_data;
++    if (g_mutex_trylock(&task->idle_query_tp_mutex))
++    {
++        if (!g_source_is_destroyed(g_main_current_source()))
++        {
++            GtkWidget *widget = p_data;
++            task->idle_query_tooltip = 0;
++            gtk_widget_set_has_tooltip(widget, TRUE);
++        }
++        g_mutex_unlock(&task->idle_query_tp_mutex);
++    }
++    return G_SOURCE_REMOVE;
++}
++
++static gboolean task_query_tooltip(GtkWidget *widget, gint x, gint y, gboolean keyboard_tip, GtkTooltip *tooltip, gpointer p_data)
++{
++    TaskButton *task = widget;
++    if (g_mutex_trylock(&task->idle_query_tp_mutex))
++    {
++        gtk_widget_set_has_tooltip(widget, FALSE);
++        GtkWidget *parent = gtk_widget_get_toplevel(widget);
++        gtk_widget_set_tooltip_text(parent, gtk_widget_get_tooltip_text(widget));
++        task->idle_query_tooltip = g_timeout_add(2 * G_TIME_SPAN_MILLISECOND, enable_query_tooltip, widget);
++        g_mutex_unlock(&task->idle_query_tp_mutex);
++    }
++    return TRUE;
++}
++#endif
++
+ /* Draw the label and tooltip on a taskbar button. */
+ static void task_draw_label(TaskButton *tb, gboolean bold_style, gboolean force)
+ {
+@@ -1228,6 +1264,12 @@ static void task_button_finalize(GObject *object)
+ {
+     TaskButton *self = (TaskButton *)object;
+ 
++#if GTK_CHECK_VERSION(3, 0, 0)
++    if (self->idle_query_tooltip)
++        g_source_remove(self->idle_query_tooltip);
++    g_mutex_clear(&self->idle_query_tp_mutex);
++#endif
++
+     /* free all data */
+     g_free(self->res_class);
+     if (self->menu_list)
+@@ -1368,6 +1410,18 @@ static gboolean task_button_leave_notify_event(GtkWidget *widget, GdkEventCrossi
+ {
+     TaskButton *tb = PANEL_TASK_BUTTON(widget);
+ 
++#if GTK_CHECK_VERSION(3, 0, 0)
++    if (g_mutex_trylock(&tb->idle_query_tp_mutex))
++    {
++        if (tb->idle_query_tooltip)
++        {
++            GtkWidget *parent = gtk_widget_get_toplevel(widget);
++            gtk_widget_set_has_tooltip(parent, FALSE);
++        }
++        g_mutex_unlock(&tb->idle_query_tp_mutex);
++    }
++#endif
++
+     tb->entered_state = FALSE;
+     task_draw_label(tb, FALSE, FALSE);
+     if (tb->flags.flat_button)
+@@ -1495,6 +1549,10 @@ TaskButton *task_button_new(Window win, gint desk, gint desks, LXPanel *panel,
+     assemble_gui(self);
+     /* and finally set visibility on it */
+     gtk_widget_set_visible(GTK_WIDGET(self), self->n_visible > 0);
++#if GTK_CHECK_VERSION(3, 0, 0)
++    g_mutex_init(&self->idle_query_tp_mutex);
++    g_signal_connect(GTK_WIDGET(self), "query-tooltip", G_CALLBACK(task_query_tooltip), NULL);
++#endif
+     return self;
+ }
+ 
+diff --git a/plugins/weather/weatherwidget.c b/plugins/weather/weatherwidget.c
+index bee91ec2..38b103ef 100644
+--- a/plugins/weather/weatherwidget.c
++++ b/plugins/weather/weatherwidget.c
+@@ -530,6 +530,8 @@ gtk_weather_render(GtkWeather * weather)
+ 
+   gtk_widget_set_tooltip_text(GTK_WIDGET(weather), tooltip_text);
+ 
++  lxpanel_apply_hack_for_issue_41(weather);
++
+   g_free(tooltip_text);
+ }
+ 
+diff --git a/src/misc.c b/src/misc.c
+index be46ac18..d888c26b 100644
+--- a/src/misc.c
++++ b/src/misc.c
+@@ -1258,6 +1258,12 @@ static gboolean fb_button_enter(GtkImage * widget, GdkEventCrossing * event)
+ /* Handler for "leave-notify-event" signal on image that has highlighting requested. */
+ static gboolean fb_button_leave(GtkImage * widget, GdkEventCrossing * event, gpointer user_data)
+ {
++#if GTK_CHECK_VERSION(3, 0, 0)
++    /* XXX: a part of workaround for https://github.com/lxde/lxpanel/issues/41 */
++    GtkWidget *parent = gtk_widget_get_toplevel(GTK_WIDGET(widget));
++    gtk_widget_set_has_tooltip(parent, FALSE);
++#endif
++
+     if (gtk_image_get_storage_type(widget) == GTK_IMAGE_PIXBUF)
+     {
+         ImgData * data = (ImgData *) g_object_get_qdata(G_OBJECT(widget), img_data_id);
+@@ -1651,4 +1657,38 @@ gboolean lxpanel_launch_app(const char* exec, GList* files, gboolean in_terminal
+     return (error == NULL);
+ }
+ 
++/* XXX: workaround for https://github.com/lxde/lxpanel/issues/41 */
++/*
++    Tooltip positioning bug in GTK3.
++    * https://bugs.mageia.org/show_bug.cgi?id=30574
++    * https://github.com/lxde/lxpanel/issues/41
++*/
++
++#if GTK_CHECK_VERSION(3, 0, 0)
++static gboolean enable_query_tooltip(gpointer p_data)
++{
++    GtkWidget *widget = p_data;
++    gtk_widget_set_has_tooltip(widget, TRUE);
++    return G_SOURCE_REMOVE;
++}
++
++static gboolean plugin_query_tooltip(GtkWidget *widget, gint x, gint y, gboolean keyboard_tip, GtkTooltip *tooltip, gpointer p_data)
++{
++    gtk_widget_set_has_tooltip(widget, FALSE);
++    GtkWidget *parent = gtk_widget_get_toplevel(widget);
++    gtk_widget_set_tooltip_text(parent, gtk_widget_get_tooltip_text(widget));
++    g_timeout_add(2 * G_TIME_SPAN_MILLISECOND, enable_query_tooltip, widget);
++    return TRUE;
++}
++#endif
++
++void lxpanel_apply_hack_for_issue_41(GtkWidget *widget)
++{
++#if GTK_CHECK_VERSION(3, 0, 0)
++    g_signal_connect(widget, "query-tooltip", G_CALLBACK(plugin_query_tooltip), NULL);
++#else
++    (void) widget;
++#endif
++}
++
+ /* vim: set sw=4 et sts=4 : */
+diff --git a/src/misc.h b/src/misc.h
+index c263c7c5..8b394af5 100644
+--- a/src/misc.h
++++ b/src/misc.h
+@@ -269,6 +269,8 @@ extern GtkWidget *lxpanel_image_new_for_fm_icon(LXPanel *panel, FmIcon *icon,
+ extern gboolean lxpanel_image_change_icon(GtkWidget *img, const gchar *name,
+                                           const char *fallback);
+ 
++extern void lxpanel_apply_hack_for_issue_41(GtkWidget *widget);
++
+ G_END_DECLS
+ 
+ #endif
+diff --git a/src/panel.c b/src/panel.c
+index 12e8c5a8..48f4ae41 100644
+--- a/src/panel.c
++++ b/src/panel.c
+@@ -401,6 +401,15 @@ static gboolean lxpanel_button_press(GtkWidget *widget, GdkEventButton *event)
+     return FALSE;
+ }
+ 
++#if GTK_CHECK_VERSION(3, 0, 0)
++/* XXX: a part of workaround for https://github.com/lxde/lxpanel/issues/41 */
++static gboolean lxpanel_enter_notify(GtkWidget* widget, GdkEventCrossing event, gpointer p_data)
++{
++    gtk_widget_set_has_tooltip(widget, FALSE);
++    return FALSE;
++}
++#endif
++
+ static void lxpanel_class_init(PanelToplevelClass *klass)
+ {
+     GObjectClass *gobject_class = (GObjectClass *)klass;
+@@ -430,6 +439,7 @@ static void lxpanel_class_init(PanelToplevelClass *klass)
+     widget_class->button_press_event = lxpanel_button_press;
+     widget_class->button_release_event = _lxpanel_button_release;
+     widget_class->motion_notify_event = _lxpanel_motion_notify;
++    widget_class->enter_notify_event = lxpanel_enter_notify;
+ 
+     signals[ICON_SIZE_CHANGED] =
+         g_signal_new("icon-size-changed",
+diff --git a/src/plugin.c b/src/plugin.c
+index aa1c3d01..96acde22 100644
+--- a/src/plugin.c
++++ b/src/plugin.c
+@@ -587,6 +587,9 @@ GtkWidget *lxpanel_add_plugin(LXPanel *p, const char *name, config_setting_t *cf
+     g_object_set_qdata(G_OBJECT(widget), lxpanel_plugin_qinit, (gpointer)init);
+     g_object_set_qdata_full(G_OBJECT(widget), lxpanel_plugin_qsize,
+                             g_new0(GdkRectangle, 1), g_free);
++
++    lxpanel_apply_hack_for_issue_41(widget);
++
+     return widget;
+ }
+ 
