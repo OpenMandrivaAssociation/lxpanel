@@ -26,7 +26,7 @@ Version:	0.10.1
 Release:	3
 License:	GPLv2+
 Group:		Graphical desktop/Other
-Url:		http://www.lxde.org
+Url:		https://www.lxde.org
 # Use active maintained fork
 #Source0:	https://github.com/lxde-continued/%{name}/releases/download/%{name}-%{version}/%{name}-%{version}.tar.bz2
 #Source0:	http://downloads.sourceforge.net/lxde/lxpanel-%{version}.tar.xz
