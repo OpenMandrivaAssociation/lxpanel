@@ -6,8 +6,8 @@
 # git snapshot
 %global snapshot 1
 %if 0%{?snapshot}
-	%global commit		633a2d46ffd37f3acde539de9a2861d1ade49ef8
-	%global commitdate	20230918
+	%global commit		ffd815fc2d30a5fe339e5c927060a14cdc88e345
+	%global commitdate	20240823
 	%global shortcommit	%(c=%{commit}; echo ${c:0:7})
 %endif
 
@@ -23,7 +23,7 @@
 Summary:	Lightweight X11 desktop panel based on fbpanel
 Name:		lxpanel
 Version:	0.10.1
-Release:	3
+Release:	4
 License:	GPLv2+
 Group:		Graphical desktop/Other
 Url:		https://www.lxde.org
