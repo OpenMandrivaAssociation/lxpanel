@@ -4,7 +4,7 @@
 %global optflags %{optflags} -Wno-error -Wno-implicit-function-declaration
 
 # git snapshot
-%global snapshot 1
+#global snapshot 1
 %if 0%{?snapshot}
 	%global commit		ffd815fc2d30a5fe339e5c927060a14cdc88e345
 	%global commitdate	20240823
@@ -22,8 +22,8 @@
 
 Summary:	Lightweight X11 desktop panel based on fbpanel
 Name:		lxpanel
-Version:	0.10.1
-Release:	4
+Version:	0.11.1
+Release:	1
 License:	GPLv2+
 Group:		Graphical desktop/Other
 Url:		https://www.lxde.org
@@ -31,25 +31,6 @@ Url:		https://www.lxde.org
 #Source0:	https://github.com/lxde-continued/%{name}/releases/download/%{name}-%{version}/%{name}-%{version}.tar.bz2
 #Source0:	http://downloads.sourceforge.net/lxde/lxpanel-%{version}.tar.xz
 Source0:	https://github.com/lxde/lxpanel/archive/%{?snapshot:%{commit}}%{!?snapshot:%{version}}/%{name}-%{?snapshot:%{commit}}%{!?snapshot:%{version}}.tar.gz
-# https://sourceforge.net/p/lxde/bugs/773/
-Patch0:		0001-Specify-GTK_REQUEST_CONSTANT_SIZE.-Fixes-773.patch
-#  resized panel background to enable larger panel heights #65
-Patch1:		https://github.com/lxde/lxpanel/pull/65/commits/4f3d32e66135f733450ed0717cf4e96018046216.patch
-# (fedora)
-Patch3:	lxpanel-0.10.1-0003-volumealsa-poll-alsa-mixer-several-times-at-startup.patch
-Patch4:	lxpanel-0.8.1-Fix-pager-scroll.patch
-Patch5:	lxpanel-0.10.1-batt-chaging-pending.patch
-# some plugins can't be compiled:
-#  netstat, indicator
-Patch10:	lxpanel-0.10.1-remove_failing_plugins.patch
-# from lxde-continued
-#  highlight selected workspace in pager
-Patch101:	https://github.com/lxde/lxpanel/commit/359ac141643ca9072bdc66542902a529316f3b10.patch
-#  apply partial workaround for GTK3 tooltip positioning bug (MAGEIA#30574)
-Patch102:	https://github.com/lxde/lxpanel/commit/76d0d61194a3dec9f3cc9947933d2594366c439b.patch
-#  merge pull request #3 from nsalguero/master
-Patch103:	https://github.com/lxde/lxpanel/commit/0c44a8acd3cd497e61a4fdadace4b69c49185b57.patch
-
 BuildRequires:	docbook-to-man
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-style-xsl
@@ -72,12 +53,23 @@ BuildRequires:	pkgconfig(libcurl)
 BuildRequires:	pkgconfig(libxml-2.0)
 BuildRequires:	pkgconfig(xkbfile)
 #BuildRequires:	libiw-devel
+#BuildSystem:	autotools
+#BuildOption:	--disable-indicator-support
+#BuildOption:	--enable-gtk3
 
 Requires:	desktop-common-data
 Requires:	obconf
 Requires:	libnotify
 Recommends:	pcmanfm
 Conflicts:	lxpanelx
+
+%patchlist
+# (fedora)
+lxpanel-0.10.1-0003-volumealsa-poll-alsa-mixer-several-times-at-startup.patch
+# some plugins can't be compiled:
+#  netstat, indicator
+lxpanel-0.10.1-remove_failing_plugins.patch
+
 
 %description
 LXPanel is a lightweight X11 desktop panel contains:
