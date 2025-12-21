@@ -31,6 +31,11 @@ Url:		https://www.lxde.org
 #Source0:	https://github.com/lxde-continued/%{name}/releases/download/%{name}-%{version}/%{name}-%{version}.tar.bz2
 #Source0:	http://downloads.sourceforge.net/lxde/lxpanel-%{version}.tar.xz
 Source0:	https://github.com/lxde/lxpanel/archive/%{?snapshot:%{commit}}%{!?snapshot:%{version}}/%{name}-%{?snapshot:%{commit}}%{!?snapshot:%{version}}.tar.gz
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires:	docbook-to-man
 BuildRequires:	docbook-dtd412-xml
 BuildRequires:	docbook-style-xsl
