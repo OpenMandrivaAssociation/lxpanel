@@ -153,7 +153,7 @@ autoreconf -fiv
 	--disable-indicator-support \
 	--enable-gtk3 \
 	%{nil}
-%make_build
+%make_build AR=ar RANLIB=ranlib
 
 %install
 %make_install
